@@ -9,6 +9,7 @@ import {
   searchPansou,
   type PansouSearchResponse,
 } from '../src/pansou'
+import { createPansouSearchTool } from '../src/tool'
 
 describe('searchPansou', () => {
   it('向 PanSou 搜索接口发送关键词、网盘类型和认证头', async () => {
@@ -116,5 +117,55 @@ describe('formatPansouResults', () => {
     )
 
     expect(text).toBe('没有找到“不存在的资源”的网盘资源。')
+  })
+})
+
+describe('createPansouSearchTool', () => {
+  it('工具调用 PanSou 并返回格式化结果', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        total: 1,
+        merged_by_type: {
+          quark: [
+            {
+              url: 'https://pan.quark.cn/s/fanren',
+              note: '凡人修仙传',
+            },
+          ],
+        },
+      }),
+    })) as unknown as typeof fetch
+    const tool = createPansouSearchTool({
+      toolName: 'pansou_search',
+      baseUrl: 'http://127.0.0.1:8888',
+      maxResults: 5,
+      fetchImpl,
+    })
+
+    const text = await (tool as any)._call({ keyword: '凡人修仙传' })
+
+    expect(text).toContain('找到 1 条“凡人修仙传”的网盘资源')
+    expect(text).toContain('https://pan.quark.cn/s/fanren')
+    expect(fetchImpl).toHaveBeenCalledOnce()
+  })
+
+  it('工具捕获请求错误并返回给模型', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: false,
+      status: 502,
+      text: async () => 'bad gateway',
+    })) as unknown as typeof fetch
+    const tool = createPansouSearchTool({
+      toolName: 'pansou_search',
+      baseUrl: 'http://127.0.0.1:8888',
+      maxResults: 5,
+      fetchImpl,
+    })
+
+    const text = await (tool as any)._call({ keyword: '电影' })
+
+    expect(text).toBe('PanSou 搜索失败：PanSou API 请求失败：HTTP 502 bad gateway')
   })
 })

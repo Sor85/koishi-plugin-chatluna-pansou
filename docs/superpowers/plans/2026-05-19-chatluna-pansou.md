@@ -72,21 +72,21 @@ Expected: PASS。
 - Create: `src/tool.ts`
 - Create: `src/index.ts`
 
-- [ ] **Step 1: 写工具行为测试**
+- [x] **Step 1: 写工具行为测试**
 
 测试工具 `_call()` 接收关键词后返回格式化结果。
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `npm test -- tests/pansou.test.ts`
 
 Expected: FAIL，提示工具函数不存在。
 
-- [ ] **Step 3: 实现工具和插件入口**
+- [x] **Step 3: 实现工具和插件入口**
 
 实现 `createPansouSearchTool()`，并在 `apply()` 中通过 `ChatLunaPlugin.registerTool()` 注册。
 
-- [ ] **Step 4: 运行测试确认通过**
+- [x] **Step 4: 运行测试确认通过**
 
 Run: `npm test -- tests/pansou.test.ts`
 
@@ -97,11 +97,11 @@ Expected: PASS。
 **Files:**
 - Create: `README.md`
 
-- [ ] **Step 1: 写最小 README**
+- [x] **Step 1: 写最小 README**
 
 说明依赖 PanSou 服务、配置项和工具用途。
 
-- [ ] **Step 2: 运行完整验证**
+- [x] **Step 2: 运行完整验证**
 
 Run: `npm run typecheck && npm test && npm run build`
 

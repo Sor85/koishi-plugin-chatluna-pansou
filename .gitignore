@@ -1,0 +1,6 @@
+# 依赖目录
+# 构建和本地缓存产物
+node_modules/
+lib/
+dist/
+*.tsbuildinfo
