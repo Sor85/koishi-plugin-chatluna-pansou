@@ -30,11 +30,11 @@
 - Create: `tsup.config.ts`
 - Create: `vitest.config.ts`
 
-- [ ] **Step 1: 创建基础工程配置**
+- [x] **Step 1: 创建基础工程配置**
 
 写入最小 TypeScript 插件工程配置，脚本包含 `build`、`typecheck`、`test`。
 
-- [ ] **Step 2: 安装依赖**
+- [x] **Step 2: 安装依赖**
 
 Run: `npm install`
 
@@ -46,21 +46,21 @@ Expected: 生成 `node_modules` 与 `package-lock.json`。
 - Create: `tests/pansou.test.ts`
 - Create: `src/pansou.ts`
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 测试 `searchPansou()` 会向 `/api/search` 发送正确 JSON，并带上 token。
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `npm test -- tests/pansou.test.ts`
 
 Expected: FAIL，提示无法导入 `src/pansou`。
 
-- [ ] **Step 3: 实现最小客户端**
+- [x] **Step 3: 实现最小客户端**
 
 实现 `searchPansou()`、`formatPansouResults()` 和相关类型。
 
-- [ ] **Step 4: 运行测试确认通过**
+- [x] **Step 4: 运行测试确认通过**
 
 Run: `npm test -- tests/pansou.test.ts`
 
