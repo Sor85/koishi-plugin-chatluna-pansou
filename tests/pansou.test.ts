@@ -10,6 +10,23 @@ import {
   type PansouSearchResponse,
 } from '../src/pansou'
 import { createPansouSearchTool } from '../src/tool'
+import { toPansouCloudTypeLimitConfig } from '../src/cloud-types'
+
+describe('toPansouCloudTypeLimitConfig', () => {
+  it('把配置页稳定 key 映射为 PanSou 网盘类型 key', () => {
+    expect(
+      toPansouCloudTypeLimitConfig({
+        baidu: 1,
+        pan115: 2,
+        pan123: 3,
+      }),
+    ).toMatchObject({
+      baidu: 1,
+      '115': 2,
+      '123': 3,
+    })
+  })
+})
 
 describe('searchPansou', () => {
   it('向 PanSou 搜索接口发送关键词、网盘类型和认证头', async () => {

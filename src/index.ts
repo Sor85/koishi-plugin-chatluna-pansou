@@ -8,8 +8,11 @@ import { ChatLunaPlugin } from 'koishi-plugin-chatluna/services/chat'
 import type { ChatLunaToolMeta } from 'koishi-plugin-chatluna/llm-core/platform/types'
 import {
   CLOUD_TYPE_OPTIONS,
+  CLOUD_TYPE_LIMIT_OPTIONS,
   type CloudType,
+  type CloudTypeLimitKey,
   type CloudTypeLimitConfig,
+  toPansouCloudTypeLimitConfig,
 } from './cloud-types'
 import { createPansouSearchTool } from './tool'
 
@@ -32,8 +35,8 @@ const cloudTypeSchema = Schema.union(
 
 const maxResultsByCloudTypeSchema = Schema.object(
   Object.fromEntries(
-    CLOUD_TYPE_OPTIONS.map(([value, label]) => [
-      value,
+    CLOUD_TYPE_LIMIT_OPTIONS.map(([configKey, _cloudType, label]) => [
+      configKey,
       Schema.number()
         .min(0)
         .max(20)
@@ -41,14 +44,14 @@ const maxResultsByCloudTypeSchema = Schema.object(
         .default(0)
         .description(`${label}最多返回数量，0 表示不单独限制。`),
     ]),
-  ) as Record<CloudType, Schema<number>>,
+  ) as Record<CloudTypeLimitKey, Schema<number>>,
 )
   .description('单个网盘类型最多返回数量')
   .collapse()
 
 const DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE = Object.fromEntries(
-  CLOUD_TYPE_OPTIONS.map(([value]) => [value, 0]),
-) as Record<CloudType, number>
+  CLOUD_TYPE_LIMIT_OPTIONS.map(([configKey]) => [configKey, 0]),
+) as Record<CloudTypeLimitKey, number>
 
 export const Config: Schema<Config> = Schema.object({
   baseUrl: Schema.string()
@@ -124,7 +127,9 @@ export function apply(ctx: Context, config: Config): void {
           token: config.token,
           maxResults: config.maxResults,
           defaultCloudTypes: config.defaultCloudTypes,
-          maxResultsByCloudType: config.maxResultsByCloudType,
+          maxResultsByCloudType: toPansouCloudTypeLimitConfig(
+            config.maxResultsByCloudType,
+          ),
           timeout: config.timeout,
           log,
         }),
