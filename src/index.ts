@@ -43,6 +43,8 @@ const maxResultsByCloudTypeSchema = Schema.object(
     ]),
   ) as Record<CloudType, Schema<number>>,
 )
+  .description('单个网盘类型最多返回数量')
+  .collapse()
 
 const DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE = Object.fromEntries(
   CLOUD_TYPE_OPTIONS.map(([value]) => [value, 0]),
@@ -67,8 +69,7 @@ export const Config: Schema<Config> = Schema.object({
     .default([])
     .description('默认网盘类型过滤，不勾选表示不过滤。'),
   maxResultsByCloudType: maxResultsByCloudTypeSchema
-    .default(DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE)
-    .description('单个网盘类型最多返回数量，0 表示不单独限制。'),
+    .default(DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE),
   timeout: Schema.number()
     .min(1000)
     .step(1000)
