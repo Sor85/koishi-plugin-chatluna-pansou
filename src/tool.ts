@@ -24,10 +24,35 @@ export interface PansouSearchToolOptions {
 
 const pansouSearchSchema = z.object({
   keyword: z.string().min(1, 'keyword is required').describe('要搜索的资源关键词。'),
+  channels: z
+    .array(z.string().min(1))
+    .optional()
+    .describe('可选 Telegram 频道列表，不提供则使用 PanSou 默认配置。'),
+  conc: z.number().int().positive().optional().describe('可选并发搜索数量。'),
+  res: z
+    .enum(['all', 'results', 'merge'])
+    .optional()
+    .describe('可选结果类型：all、results、merge，默认 merge。'),
+  src: z
+    .enum(['all', 'tg', 'plugin'])
+    .optional()
+    .describe('可选数据来源：all、tg、plugin，默认 all。'),
+  plugins: z
+    .array(z.string().min(1))
+    .optional()
+    .describe('可选插件列表，不提供则使用 PanSou 默认配置。'),
   cloudTypes: z
     .array(z.string().min(1))
     .optional()
     .describe('可选网盘类型过滤，如 quark、baidu、aliyun。'),
+  ext: z.record(z.unknown()).optional().describe('可选扩展参数，传递给 PanSou 插件。'),
+  filter: z
+    .object({
+      include: z.array(z.string().min(1)).optional(),
+      exclude: z.array(z.string().min(1)).optional(),
+    })
+    .optional()
+    .describe('可选过滤配置，include 为包含关键词，exclude 为排除关键词。'),
   maxResults: z
     .number()
     .int()
@@ -48,7 +73,14 @@ function buildSearchOptions(
     baseUrl: config.baseUrl,
     keyword: input.keyword,
     token: config.token,
+    channels: input.channels,
+    conc: input.conc,
+    res: input.res,
+    src: input.src,
+    plugins: input.plugins,
     cloudTypes: input.cloudTypes ?? config.defaultCloudTypes,
+    ext: input.ext,
+    filter: input.filter,
     refresh: input.refresh,
     timeout: config.timeout,
     fetchImpl: config.fetchImpl,

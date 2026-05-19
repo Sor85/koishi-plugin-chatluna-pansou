@@ -108,6 +108,53 @@ describe('searchPansou', () => {
     expect(result.total).toBe(162)
     expect(result.merged_by_type?.['115']?.[0]?.note).toBe('盗梦空间')
   })
+
+  it('向 PanSou 透传完整可选请求参数', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ total: 0, merged_by_type: {} }),
+    })) as unknown as typeof fetch
+
+    await searchPansou({
+      baseUrl: 'http://127.0.0.1:8888',
+      keyword: '盗梦空间',
+      channels: ['tgsearchers3'],
+      conc: 2,
+      refresh: true,
+      res: 'all',
+      src: 'plugin',
+      plugins: ['jikepan'],
+      cloudTypes: ['115'],
+      ext: { title_en: 'Inception' },
+      filter: {
+        include: ['4K'],
+        exclude: ['预告'],
+      },
+      fetchImpl,
+    })
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'http://127.0.0.1:8888/api/search',
+      expect.objectContaining({
+        body: JSON.stringify({
+          kw: '盗梦空间',
+          res: 'all',
+          channels: ['tgsearchers3'],
+          conc: 2,
+          refresh: true,
+          src: 'plugin',
+          plugins: ['jikepan'],
+          cloud_types: ['115'],
+          ext: { title_en: 'Inception' },
+          filter: {
+            include: ['4K'],
+            exclude: ['预告'],
+          },
+        }),
+      }),
+    )
+  })
 })
 
 describe('formatPansouResults', () => {
@@ -150,6 +197,42 @@ describe('formatPansouResults', () => {
     )
 
     expect(text).toBe('没有找到“不存在的资源”的网盘资源。')
+  })
+
+  it('当响应只有 results 时从 results[].links 格式化资源', () => {
+    const text = formatPansouResults(
+      {
+        total: 1,
+        results: [
+          {
+            message_id: '1',
+            unique_id: 'tg-1',
+            channel: 'tgsearchers3',
+            datetime: '2026-01-01T00:00:00Z',
+            title: '盗梦空间',
+            content: '盗梦空间 4K',
+            links: [
+              {
+                type: '115',
+                url: 'https://115.com/s/example',
+                password: 'abcd',
+                datetime: '2026-01-01T00:00:00Z',
+                work_title: '盗梦空间',
+              },
+            ],
+            tags: ['电影'],
+            images: ['https://example.com/image.jpg'],
+          },
+        ],
+      },
+      { keyword: '盗梦空间', maxResults: 5 },
+    )
+
+    expect(text).toContain('找到 1 条“盗梦空间”的网盘资源')
+    expect(text).toContain('1. [115] 盗梦空间')
+    expect(text).toContain('链接：https://115.com/s/example')
+    expect(text).toContain('提取码：abcd')
+    expect(text).toContain('来源：tg:tgsearchers3')
   })
 })
 

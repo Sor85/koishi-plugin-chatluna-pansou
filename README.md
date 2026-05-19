@@ -31,7 +31,13 @@ http://127.0.0.1:8888
 模型调用 `pansou_search` 时可传：
 
 - `keyword`：必填，搜索关键词。
+- `channels`：可选，搜索频道列表。
+- `conc`：可选，并发搜索数量。
+- `res`：可选，结果类型：`all`、`results`、`merge`，默认 `merge`。
+- `src`：可选，数据来源：`all`、`tg`、`plugin`。
+- `plugins`：可选，指定搜索插件列表。
 - `cloudTypes`：可选，网盘类型过滤，例如 `["quark", "baidu"]`。
+- `ext`：可选，传给 PanSou 插件的扩展参数。
+- `filter`：可选，过滤配置，例如 `{"include":["4K"],"exclude":["预告"]}`。
 - `maxResults`：可选，本次最多返回多少条。
 - `refresh`：可选，是否强制刷新 PanSou 缓存。
-

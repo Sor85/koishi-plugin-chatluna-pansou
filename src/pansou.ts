@@ -12,10 +12,30 @@ export interface PansouMergedLink {
   images?: string[]
 }
 
+export interface PansouResultLink {
+  type: string
+  url: string
+  password?: string
+  datetime?: string
+  work_title?: string
+}
+
+export interface PansouSearchResult {
+  message_id?: string
+  unique_id?: string
+  channel?: string
+  datetime?: string
+  title?: string
+  content?: string
+  links?: PansouResultLink[]
+  tags?: string[]
+  images?: string[]
+}
+
 export interface PansouSearchResponse {
   total?: number
   merged_by_type?: Record<string, PansouMergedLink[]>
-  results?: unknown[]
+  results?: PansouSearchResult[]
 }
 
 export interface PansouApiResponse {
@@ -28,7 +48,17 @@ export interface SearchPansouOptions {
   baseUrl: string
   keyword: string
   token?: string
+  channels?: string[]
+  conc?: number
+  res?: 'all' | 'results' | 'merge'
+  src?: 'all' | 'tg' | 'plugin'
+  plugins?: string[]
   cloudTypes?: string[]
+  ext?: Record<string, unknown>
+  filter?: {
+    include?: string[]
+    exclude?: string[]
+  }
   refresh?: boolean
   timeout?: number
   fetchImpl?: typeof fetch
@@ -50,6 +80,10 @@ function normalizeBaseUrl(baseUrl: string): string {
 function compactStringList(values?: string[]): string[] | undefined {
   const result = values?.map((value) => value.trim()).filter(Boolean)
   return result?.length ? result : undefined
+}
+
+function hasObjectValues(value?: Record<string, unknown>): boolean {
+  return value != null && Object.keys(value).length > 0
 }
 
 function normalizePansouResponse(
@@ -81,12 +115,24 @@ export async function searchPansou(
 
   const body: Record<string, unknown> = {
     kw: keyword,
-    res: 'merge',
+    res: options.res ?? 'merge',
   }
+
+  const channels = compactStringList(options.channels)
+  if (channels) body.channels = channels
+
+  if (typeof options.conc === 'number') body.conc = options.conc
   if (typeof options.refresh === 'boolean') body.refresh = options.refresh
+  if (options.src) body.src = options.src
+
+  const plugins = compactStringList(options.plugins)
+  if (plugins) body.plugins = plugins
 
   const cloudTypes = compactStringList(options.cloudTypes)
   if (cloudTypes) body.cloud_types = cloudTypes
+
+  if (hasObjectValues(options.ext)) body.ext = options.ext
+  if (hasObjectValues(options.filter)) body.filter = options.filter
 
   const controller = new AbortController()
   const timeout = options.timeout ?? 30_000
@@ -119,10 +165,26 @@ export async function searchPansou(
 }
 
 function flattenMergedLinks(response: PansouSearchResponse): PansouFlatLink[] {
-  return Object.entries(response.merged_by_type ?? {}).flatMap(([type, links]) =>
+  const mergedLinks = Object.entries(response.merged_by_type ?? {}).flatMap(([type, links]) =>
     links
       .filter((link) => typeof link.url === 'string' && link.url.trim())
       .map((link) => ({ ...link, type })),
+  )
+
+  if (mergedLinks.length > 0) return mergedLinks
+
+  return (response.results ?? []).flatMap((result) =>
+    (result.links ?? [])
+      .filter((link) => typeof link.url === 'string' && link.url.trim())
+      .map((link) => ({
+        type: link.type,
+        url: link.url,
+        password: link.password,
+        note: link.work_title ?? result.title ?? result.content,
+        datetime: link.datetime ?? result.datetime,
+        source: result.channel ? `tg:${result.channel}` : undefined,
+        images: result.images,
+      })),
   )
 }
 
