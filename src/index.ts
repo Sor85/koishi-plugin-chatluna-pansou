@@ -14,7 +14,7 @@ import {
   type CloudTypeLimitConfig,
   toPansouCloudTypeLimitConfig,
 } from './cloud-types'
-import { createPansouSearchTool } from './tool'
+import { DEFAULT_TOOL_DESCRIPTION, createPansouSearchTool } from './tool'
 
 export const name = 'chatluna-pansou'
 export const inject = ['chatluna']
@@ -23,6 +23,7 @@ export interface Config extends Partial<ChatLunaPlugin.Config> {
   baseUrl: string
   token?: string
   toolName: string
+  toolDescription?: string
   maxResults: number
   defaultCloudTypes: CloudType[]
   maxResultsByCloudType: CloudTypeLimitConfig
@@ -42,7 +43,7 @@ const maxResultsByCloudTypeSchema = Schema.object(
         .max(20)
         .step(1)
         .default(0)
-        .description(`${label}最多返回数量，0 表示不单独限制。`),
+        .description(`${label}最多返回数量，0 表示不单独限制`),
     ]),
   ) as Record<CloudTypeLimitKey, Schema<number>>,
 )
@@ -56,28 +57,32 @@ const DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE = Object.fromEntries(
 export const Config: Schema<Config> = Schema.object({
   baseUrl: Schema.string()
     .default('http://127.0.0.1:8888')
-    .description('PanSou API 根地址，例如 http://127.0.0.1:8888。'),
-  token: Schema.string().description('PanSou 启用认证时填写 JWT Token。'),
+    .description('PanSou API 根地址，例如 http://127.0.0.1:8888'),
+  token: Schema.string().description('PanSou 启用认证时填写 JWT Token'),
   toolName: Schema.string()
     .default('pansou_search')
-    .description('注册到 ChatLuna 的工具名称。'),
+    .description('注册到 ChatLuna 的工具名称'),
+  toolDescription: Schema.string()
+    .role('textarea')
+    .default(DEFAULT_TOOL_DESCRIPTION)
+    .description('注册到 ChatLuna 的工具描述'),
   maxResults: Schema.number()
     .min(1)
     .max(20)
     .step(1)
     .default(5)
-    .description('默认返回给模型的最大结果数量。'),
+    .description('默认返回给模型的最大结果数量'),
   defaultCloudTypes: Schema.array(cloudTypeSchema)
     .role('checkbox')
     .default([])
-    .description('默认网盘类型过滤，不勾选表示不过滤。'),
+    .description('默认网盘类型过滤，不勾选表示不过滤'),
   maxResultsByCloudType: maxResultsByCloudTypeSchema
     .default(DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE),
   timeout: Schema.number()
     .min(1000)
     .step(1000)
     .default(30_000)
-    .description('请求 PanSou API 的超时时间，单位毫秒。'),
+    .description('请求 PanSou API 的超时时间，单位毫秒'),
 })
 
 const TOOL_META: ChatLunaToolMeta = {
@@ -115,14 +120,15 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.on('ready', () => {
     const toolName = config.toolName.trim() || 'pansou_search'
+    const toolDescription = config.toolDescription?.trim() || DEFAULT_TOOL_DESCRIPTION
     plugin.registerTool(toolName, {
       selector: () => true,
       authorization: () => true,
-      description:
-        'Search cloud-drive resources with PanSou and return concise share links.',
+      description: toolDescription,
       createTool: () =>
         createPansouSearchTool({
           toolName,
+          toolDescription,
           baseUrl: config.baseUrl,
           token: config.token,
           maxResults: config.maxResults,

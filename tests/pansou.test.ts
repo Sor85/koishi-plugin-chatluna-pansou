@@ -287,6 +287,17 @@ describe('formatPansouResults', () => {
 })
 
 describe('createPansouSearchTool', () => {
+  it('支持自定义工具描述', () => {
+    const tool = createPansouSearchTool({
+      toolName: 'pansou_search',
+      toolDescription: '用 PanSou 搜索网盘资源。',
+      baseUrl: 'http://127.0.0.1:8888',
+      maxResults: 5,
+    })
+
+    expect(tool.description).toBe('用 PanSou 搜索网盘资源。')
+  })
+
   it('工具调用 PanSou 并返回格式化结果', async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,

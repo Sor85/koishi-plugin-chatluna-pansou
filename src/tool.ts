@@ -12,8 +12,12 @@ import {
 } from './pansou'
 import type { PansouCloudTypeLimitConfig } from './cloud-types'
 
+export const DEFAULT_TOOL_DESCRIPTION =
+  'Search cloud-drive resources with PanSou and return concise share links, passwords, cloud types, and sources.'
+
 export interface PansouSearchToolOptions {
   toolName: string
+  toolDescription?: string
   baseUrl: string
   token?: string
   maxResults: number
@@ -95,8 +99,7 @@ export function createPansouSearchTool(
 ): StructuredTool {
   return new DynamicStructuredTool({
     name: config.toolName || 'pansou_search',
-    description:
-      'Search cloud-drive resources with PanSou and return concise share links, passwords, cloud types, and sources.',
+    description: config.toolDescription?.trim() || DEFAULT_TOOL_DESCRIPTION,
     schema: pansouSearchSchema,
     async func(input: PansouSearchToolInput) {
       try {
