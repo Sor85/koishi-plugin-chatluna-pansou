@@ -28,7 +28,7 @@ export interface Config extends Partial<ChatLunaPlugin.Config> {
 
 const cloudTypeSchema = Schema.union(
   CLOUD_TYPE_OPTIONS.map(([value, label]) => Schema.const(value).description(label)),
-).role('checkbox') as Schema<CloudType>
+) as Schema<CloudType>
 
 const maxResultsByCloudTypeSchema = Schema.object(
   Object.fromEntries(
@@ -63,6 +63,7 @@ export const Config: Schema<Config> = Schema.object({
     .default(5)
     .description('默认返回给模型的最大结果数量。'),
   defaultCloudTypes: Schema.array(cloudTypeSchema)
+    .role('checkbox')
     .default([])
     .description('默认网盘类型过滤，不勾选表示不过滤。'),
   maxResultsByCloudType: maxResultsByCloudTypeSchema
