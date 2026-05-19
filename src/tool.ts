@@ -10,6 +10,7 @@ import {
   searchPansou,
   type SearchPansouOptions,
 } from './pansou'
+import type { CloudTypeLimitConfig } from './cloud-types'
 
 export interface PansouSearchToolOptions {
   toolName: string
@@ -17,6 +18,7 @@ export interface PansouSearchToolOptions {
   token?: string
   maxResults: number
   defaultCloudTypes?: string[]
+  maxResultsByCloudType?: CloudTypeLimitConfig
   timeout?: number
   fetchImpl?: typeof fetch
   log?: (level: 'warn' | 'info', message: string, error?: unknown) => void
@@ -105,6 +107,7 @@ export function createPansouSearchTool(
         return formatPansouResults(response, {
           keyword,
           maxResults: input.maxResults ?? config.maxResults,
+          maxResultsByCloudType: config.maxResultsByCloudType,
         })
       } catch (error) {
         config.log?.('warn', 'PanSou 搜索失败', error)

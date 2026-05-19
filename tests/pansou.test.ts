@@ -234,6 +234,39 @@ describe('formatPansouResults', () => {
     expect(text).toContain('提取码：abcd')
     expect(text).toContain('来源：tg:tgsearchers3')
   })
+
+  it('支持按网盘类型限制返回数量', () => {
+    const text = formatPansouResults(
+      {
+        total: 5,
+        merged_by_type: {
+          baidu: [
+            { url: 'https://pan.baidu.com/s/1', note: '百度 1' },
+            { url: 'https://pan.baidu.com/s/2', note: '百度 2' },
+          ],
+          aliyun: [
+            { url: 'https://www.aliyundrive.com/s/1', note: '阿里 1' },
+            { url: 'https://www.aliyundrive.com/s/2', note: '阿里 2' },
+            { url: 'https://www.aliyundrive.com/s/3', note: '阿里 3' },
+          ],
+        },
+      },
+      {
+        keyword: '测试',
+        maxResults: 10,
+        maxResultsByCloudType: {
+          baidu: 1,
+          aliyun: 2,
+        },
+      },
+    )
+
+    expect(text).toContain('1. [baidu] 百度 1')
+    expect(text).not.toContain('百度 2')
+    expect(text).toContain('2. [aliyun] 阿里 1')
+    expect(text).toContain('3. [aliyun] 阿里 2')
+    expect(text).not.toContain('阿里 3')
+  })
 })
 
 describe('createPansouSearchTool', () => {

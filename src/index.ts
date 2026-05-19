@@ -6,6 +6,11 @@
 import { Context, Schema } from 'koishi'
 import { ChatLunaPlugin } from 'koishi-plugin-chatluna/services/chat'
 import type { ChatLunaToolMeta } from 'koishi-plugin-chatluna/llm-core/platform/types'
+import {
+  CLOUD_TYPE_OPTIONS,
+  type CloudType,
+  type CloudTypeLimitConfig,
+} from './cloud-types'
 import { createPansouSearchTool } from './tool'
 
 export const name = 'chatluna-pansou'
@@ -16,9 +21,32 @@ export interface Config extends Partial<ChatLunaPlugin.Config> {
   token?: string
   toolName: string
   maxResults: number
-  defaultCloudTypes: string[]
+  defaultCloudTypes: CloudType[]
+  maxResultsByCloudType: CloudTypeLimitConfig
   timeout: number
 }
+
+const cloudTypeSchema = Schema.union(
+  CLOUD_TYPE_OPTIONS.map(([value, label]) => Schema.const(value).description(label)),
+).role('checkbox') as Schema<CloudType>
+
+const maxResultsByCloudTypeSchema = Schema.object(
+  Object.fromEntries(
+    CLOUD_TYPE_OPTIONS.map(([value, label]) => [
+      value,
+      Schema.number()
+        .min(0)
+        .max(20)
+        .step(1)
+        .default(0)
+        .description(`${label}最多返回数量，0 表示不单独限制。`),
+    ]),
+  ) as Record<CloudType, Schema<number>>,
+)
+
+const DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE = Object.fromEntries(
+  CLOUD_TYPE_OPTIONS.map(([value]) => [value, 0]),
+) as Record<CloudType, number>
 
 export const Config: Schema<Config> = Schema.object({
   baseUrl: Schema.string()
@@ -34,9 +62,12 @@ export const Config: Schema<Config> = Schema.object({
     .step(1)
     .default(5)
     .description('默认返回给模型的最大结果数量。'),
-  defaultCloudTypes: Schema.array(Schema.string())
+  defaultCloudTypes: Schema.array(cloudTypeSchema)
     .default([])
-    .description('默认网盘类型过滤，留空表示不过滤。'),
+    .description('默认网盘类型过滤，不勾选表示不过滤。'),
+  maxResultsByCloudType: maxResultsByCloudTypeSchema
+    .default(DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE)
+    .description('单个网盘类型最多返回数量，0 表示不单独限制。'),
   timeout: Schema.number()
     .min(1000)
     .step(1000)
@@ -91,6 +122,7 @@ export function apply(ctx: Context, config: Config): void {
           token: config.token,
           maxResults: config.maxResults,
           defaultCloudTypes: config.defaultCloudTypes,
+          maxResultsByCloudType: config.maxResultsByCloudType,
           timeout: config.timeout,
           log,
         }),

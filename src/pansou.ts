@@ -67,6 +67,7 @@ export interface SearchPansouOptions {
 export interface FormatPansouResultsOptions {
   keyword: string
   maxResults: number
+  maxResultsByCloudType?: Record<string, number | undefined>
 }
 
 interface PansouFlatLink extends PansouMergedLink {
@@ -188,13 +189,34 @@ function flattenMergedLinks(response: PansouSearchResponse): PansouFlatLink[] {
   )
 }
 
+function limitLinksByType(
+  links: PansouFlatLink[],
+  limits?: Record<string, number | undefined>,
+): PansouFlatLink[] {
+  if (!limits) return links
+
+  const counts: Record<string, number> = {}
+  return links.filter((link) => {
+    const limit = limits[link.type]
+    if (typeof limit !== 'number' || limit < 1) return true
+
+    const count = counts[link.type] ?? 0
+    if (count >= limit) return false
+    counts[link.type] = count + 1
+    return true
+  })
+}
+
 /** 将 PanSou merged_by_type 响应转换为模型容易阅读的文本。 */
 export function formatPansouResults(
   response: PansouSearchResponse,
   options: FormatPansouResultsOptions,
 ): string {
   const keyword = options.keyword.trim()
-  const links = flattenMergedLinks(response)
+  const links = limitLinksByType(
+    flattenMergedLinks(response),
+    options.maxResultsByCloudType,
+  )
 
   if (links.length === 0) {
     return `没有找到“${keyword}”的网盘资源。`

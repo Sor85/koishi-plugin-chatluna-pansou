@@ -22,8 +22,9 @@ http://127.0.0.1:8888
 - `baseUrl`：PanSou API 根地址，默认 `http://127.0.0.1:8888`。
 - `token`：PanSou 启用认证时填写 JWT Token；未启用认证可留空。
 - `toolName`：注册到 ChatLuna 的工具名，默认 `pansou_search`。
-- `maxResults`：默认返回给模型的结果数量，默认 `5`。
-- `defaultCloudTypes`：默认网盘类型过滤，留空表示不过滤。
+- `maxResults`：默认返回给模型的结果总数量，默认 `5`。
+- `defaultCloudTypes`：默认网盘类型过滤，使用勾选项配置；默认不勾选，表示不过滤。可选项包括百度网盘、阿里云盘、夸克网盘、天翼云盘、115网盘、迅雷网盘、UC网盘、移动云盘、PikPak、123网盘、磁力链接、电驴链接。
+- `maxResultsByCloudType`：单个网盘类型最多返回数量，`0` 表示不单独限制。例如百度网盘填 `1`、阿里云盘填 `2`，则百度最多返回 1 条，阿里云最多返回 2 条。
 - `timeout`：请求超时时间，单位毫秒，默认 `30000`。
 
 ## 工具入参
