@@ -151,6 +151,35 @@ describe('createPansouSearchTool', () => {
     expect(fetchImpl).toHaveBeenCalledOnce()
   })
 
+  it('支持 ChatLuna Agent 使用 invoke 调用工具', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        total: 1,
+        merged_by_type: {
+          aliyun: [
+            {
+              url: 'https://www.aliyundrive.com/s/abc',
+              note: '测试资源',
+            },
+          ],
+        },
+      }),
+    })) as unknown as typeof fetch
+    const tool = createPansouSearchTool({
+      toolName: 'pansou_search',
+      baseUrl: 'http://127.0.0.1:8888',
+      maxResults: 5,
+      fetchImpl,
+    })
+
+    const text = await tool.invoke({ keyword: '测试资源' })
+
+    expect(text).toContain('找到 1 条“测试资源”的网盘资源')
+    expect(text).toContain('https://www.aliyundrive.com/s/abc')
+  })
+
   it('工具捕获请求错误并返回给模型', async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: false,

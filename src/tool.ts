@@ -3,7 +3,7 @@
  * 将 PanSou 搜索能力包装成 LangChain StructuredTool
  */
 
-import { StructuredTool } from '@langchain/core/tools'
+import { DynamicStructuredTool, StructuredTool } from '@langchain/core/tools'
 import { z } from 'zod'
 import {
   formatPansouResults,
@@ -59,12 +59,12 @@ function buildSearchOptions(
 export function createPansouSearchTool(
   config: PansouSearchToolOptions,
 ): StructuredTool {
-  const tool = {
+  return new DynamicStructuredTool({
     name: config.toolName || 'pansou_search',
     description:
       'Search cloud-drive resources with PanSou and return concise share links, passwords, cloud types, and sources.',
     schema: pansouSearchSchema,
-    async _call(input: PansouSearchToolInput) {
+    async func(input: PansouSearchToolInput) {
       try {
         const keyword = input.keyword.trim()
         if (!keyword) return '搜索关键词不能为空。'
@@ -79,7 +79,5 @@ export function createPansouSearchTool(
         return `PanSou 搜索失败：${(error as Error).message}`
       }
     },
-  }
-
-  return tool as unknown as StructuredTool
+  })
 }
