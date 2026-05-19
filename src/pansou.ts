@@ -18,6 +18,12 @@ export interface PansouSearchResponse {
   results?: unknown[]
 }
 
+export interface PansouApiResponse {
+  code?: number
+  message?: string
+  data?: PansouSearchResponse
+}
+
 export interface SearchPansouOptions {
   baseUrl: string
   keyword: string
@@ -44,6 +50,19 @@ function normalizeBaseUrl(baseUrl: string): string {
 function compactStringList(values?: string[]): string[] | undefined {
   const result = values?.map((value) => value.trim()).filter(Boolean)
   return result?.length ? result : undefined
+}
+
+function normalizePansouResponse(
+  response: PansouSearchResponse | PansouApiResponse,
+): PansouSearchResponse {
+  if ('data' in response && response.data) {
+    if (typeof response.code === 'number' && response.code !== 0) {
+      throw new Error(`PanSou API 返回错误：${response.message ?? response.code}`)
+    }
+    return response.data
+  }
+
+  return response as PansouSearchResponse
 }
 
 /** 调用 PanSou 搜索接口并返回原始 JSON 响应。 */
@@ -92,7 +111,8 @@ export async function searchPansou(
       throw new Error(`PanSou API 请求失败：HTTP ${response.status}${suffix}`)
     }
 
-    return (await response.json()) as PansouSearchResponse
+    const data = (await response.json()) as PansouSearchResponse | PansouApiResponse
+    return normalizePansouResponse(data)
   } finally {
     if (timer) clearTimeout(timer)
   }

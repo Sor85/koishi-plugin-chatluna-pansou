@@ -75,6 +75,39 @@ describe('searchPansou', () => {
       }),
     ).rejects.toThrow('PanSou API 请求失败：HTTP 500 server error')
   })
+
+  it('兼容 PanSou 返回 code/message/data 包装结构', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        code: 0,
+        message: 'success',
+        data: {
+          total: 162,
+          merged_by_type: {
+            '115': [
+              {
+                url: 'https://115cdn.com/s/swfppuq3zrk?password=t58d',
+                password: 't58d',
+                note: '盗梦空间',
+                source: 'tg:leoziyuan',
+              },
+            ],
+          },
+        },
+      }),
+    })) as unknown as typeof fetch
+
+    const result = await searchPansou({
+      baseUrl: 'http://127.0.0.1:8888',
+      keyword: '盗梦空间',
+      fetchImpl,
+    })
+
+    expect(result.total).toBe(162)
+    expect(result.merged_by_type?.['115']?.[0]?.note).toBe('盗梦空间')
+  })
 })
 
 describe('formatPansouResults', () => {
