@@ -1,6 +1,6 @@
 {
   "name": "koishi-plugin-chatluna-pansou",
-  "description": "为 ChatLuna 提供 PanSou 网盘搜索模型工具。",
+  "description": "为 ChatLuna 提供 PanSou 网盘搜索工具。",
   "version": "0.0.1",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
