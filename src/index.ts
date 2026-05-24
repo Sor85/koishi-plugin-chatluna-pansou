@@ -18,6 +18,31 @@ import { DEFAULT_TOOL_DESCRIPTION, createPansouSearchTool } from './tool'
 
 export const name = 'chatluna-pansou'
 export const inject = ['chatluna']
+export const usage = `
+## PanSou 后端部署
+
+本插件只调用 PanSou API，不负责部署 PanSou 服务本身。使用前需要先部署 PanSou 后端。
+
+### 推荐方式：Docker
+
+\`\`\`bash
+docker run -d --name pansou -p 8888:8888 ghcr.io/fish2018/pansou:latest
+\`\`\`
+
+部署完成后，插件配置里的 PanSou API 根地址可以保持默认值：
+
+\`\`\`text
+http://127.0.0.1:8888
+\`\`\`
+
+如果 Koishi 和 PanSou 不在同一台机器，请把 PanSou API 根地址改为 PanSou 所在服务器地址，例如：
+
+\`\`\`text
+http://服务器IP:8888
+\`\`\`
+
+后端项目：[fish2018/pansou](https://github.com/fish2018/pansou)
+`
 
 export interface Config extends Partial<ChatLunaPlugin.Config> {
   baseUrl: string
@@ -75,7 +100,7 @@ export const Config: Schema<Config> = Schema.object({
   defaultCloudTypes: Schema.array(cloudTypeSchema)
     .role('checkbox')
     .default([])
-    .description('默认网盘类型过滤，不勾选表示不过滤'),
+    .description('默认网盘类型范围；勾选表示仅搜索所选类型，不勾选则搜索全部'),
   maxResultsByCloudType: maxResultsByCloudTypeSchema
     .default(DEFAULT_MAX_RESULTS_BY_CLOUD_TYPE),
   timeout: Schema.number()
